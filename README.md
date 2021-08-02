@@ -37,8 +37,9 @@
 - [ ] Image は、**「環境のスナップショット」** としての役割を持つ
   - _OS_ や _ソフトウェア_ 、_ランタイム_(Node, Python, Ruby) など
 
-### [Dockerfile](https://docs.docker.jp/engine/reference/builder.html)
+### Dockerfile
 
+- [ ] [Dockerfile リファレンス — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/engine/reference/builder.html)
 - [ ] Dockerfile は、**イメージのビルド** に使用する
   - したがって `docker build` は、Dockerfile のコマンドライン命令を反映したビルド結果を作る
 - [ ] Dockerfile の DSL 記法 (全 18 コマンド、`MAINTAINER` は非推奨なので注意)
@@ -65,6 +66,7 @@
     - `SHELL`: 各種コマンドのデフォルトシェルを指定できる。Windows の cmd or powershell とかで使える。
   - 注意事項
     - 複数指定(`ENV`など)する時は複数行書いてもよいが、キャッシュレイヤも複数発生してしまう。スペース区切りで複数の値を設定できるコマンドもあるので、ドキュメントで確認しよう。
+    - ビルド時に機密情報を与えないようにすること。Docker のビルドはレイヤー毎にスナップショットが撮られ、中間イメージも実行できる。`--secret`オプションや `.dockerignore`ファイルを適宜利用すること。
 
 ### Container
 
@@ -74,22 +76,41 @@
 
 ### Network(Linux における仕様)
 
-- [Docker ネットワーク機能の概要 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/engine/userguide/networking/index.html)
-- Docker Network では、1 プロセス 1 コンテナの設計を、ネットワーク通信によって接続する
-- Docker をインストールすると、以下の 3 つのネットワークを自動的に作成する
-  - bridge([この Qiita 記事](https://qiita.com/TsutomuNakamura/items/ed046ee21caca4a2ffd9#bridge)の図が分かりやすい)
+- [ ] [Docker ネットワーク機能の概要 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/engine/userguide/networking/index.html)
+- [ ] [Docker Desktop for Windows のネットワーク構築機能 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/docker-for-windows/networking.html)
+- [ ] Docker Network では、1 プロセス 1 コンテナの設計を、ネットワーク通信によって接続する
+- [ ] Docker をインストールすると、以下の 3 つのネットワークを自動的に作成する
+  - **bridge**([この Qiita 記事](https://qiita.com/TsutomuNakamura/items/ed046ee21caca4a2ffd9#bridge)の図が分かりやすい)
     - Docker で基本的に使われる Network Driver。
     - 何も指定しないと docker0 という名前の bridge ネットワークに所属する
-  - host
+  - **host**
     - ホストマシンの eth0 を直接使用する
-  - none
+  - **none**
     - どの Driver も使用せず、起動したコンテナをネットワークに所属させない
-- `$ docker network inspect $NETWORK_NAME` であれこれ見える
-- Docker Engine は自動的にネットワークの `Subnet` と `Gateway` を作成する
+- [ ] `$ docker network inspect $NETWORK_NAME` であれこれ見える
+- [ ] Docker Engine は自動的にネットワークの `Subnet` と `Gateway` を作成する
   - `docker run` コマンドは、新しいコンテナに対して、自動的にこのネットワークを割り当てる
     - 例えばコンテナを立ち上げる(network の指定なし)と、bridge の Containers セクションにコンテナ ID が表示される
 
-### Network(Docker Desktop for Windows における仕様)
+### Volume
 
-- [Docker Desktop for Windows のネットワーク構築機能 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/docker-for-windows/networking.html)
-- docker0 が
+- [ ] [コンテナでデータを管理 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/engine/tutorials/dockervolumes.html)
+- [ ] [Manage data in Docker | Docker Documentation](https://docs.docker.com/storage/)
+- [ ] Docker Container は基本的にその場限りなもの。コンテナを閉じたらファイルも消える。これを**永続化**するための方法が 2 種類ある。
+- [ ] **データボリューム**
+  - Docker Container の外で管理される
+  - マウントの仕方は大きく 2 通り(ホスト OS によっては他の方法もある)
+  - Volume
+    - Docker が管理するホストファイルシステム(Linux では `/var/lib/docker/volumes`) に格納する
+    - `-v/--mount type=volume` オプションで自動作成。`docker volume create` コマンドで明示的に作成。
+    - `docker volume inspect $VOLUME_NAME` でマウント先を確認できる
+    - 基本 bind mount と変わらないが、複数のコンテナで使用できるのが強み
+  - bind mount
+    - ホストファイルシステムの適当な場所にマウントできる
+    - `--mount type=bind` オプションで指定。
+    - ソースコードや作成したアーティファクトを Docker ホストとコンテナ間で共有したい時はこちらを使う
+      - [MarpCLI on Docker でスライドを作成した例](https://puyobyee18.hatenablog.com/entry/2021/04/08/180931)はまさにこれ。UID を一致させないと面倒なので注意。
+- [ ] **データボリュームコンテナ**
+  - 他のコンテナで使用されている Volume を使う機能。
+  - `--volumes-from $VOLUME_NAME` オプションを`docker run` とともに使用する
+- [ ] `-v` オプションは volume かバインドか分かりづらいので、`--mount type=bind/volume` オプションを使うべし。
