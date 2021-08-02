@@ -65,3 +65,31 @@
     - `SHELL`: 各種コマンドのデフォルトシェルを指定できる。Windows の cmd or powershell とかで使える。
   - 注意事項
     - 複数指定(`ENV`など)する時は複数行書いてもよいが、キャッシュレイヤも複数発生してしまう。スペース区切りで複数の値を設定できるコマンドもあるので、ドキュメントで確認しよう。
+
+### Container
+
+- Docker Container とは、Docker Image を元に起動したプロセス
+- ホスト OS とは隔離されているため、`CMD`で定義されたプロセスは、`PID=1` で立ち上がる
+- docker-desktop for windows では `pstree` コマンドでも詳細までは確認出来なかった
+
+### Network(Linux における仕様)
+
+- [Docker ネットワーク機能の概要 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/engine/userguide/networking/index.html)
+- Docker Network では、1 プロセス 1 コンテナの設計を、ネットワーク通信によって接続する
+- Docker をインストールすると、以下の 3 つのネットワークを自動的に作成する
+  - bridge([この Qiita 記事](https://qiita.com/TsutomuNakamura/items/ed046ee21caca4a2ffd9#bridge)の図が分かりやすい)
+    - Docker で基本的に使われる Network Driver。
+    - 何も指定しないと docker0 という名前の bridge ネットワークに所属する
+  - host
+    - ホストマシンの eth0 を直接使用する
+  - none
+    - どの Driver も使用せず、起動したコンテナをネットワークに所属させない
+- `$ docker network inspect $NETWORK_NAME` であれこれ見える
+- Docker Engine は自動的にネットワークの `Subnet` と `Gateway` を作成する
+  - `docker run` コマンドは、新しいコンテナに対して、自動的にこのネットワークを割り当てる
+    - 例えばコンテナを立ち上げる(network の指定なし)と、bridge の Containers セクションにコンテナ ID が表示される
+
+### Network(Docker Desktop for Windows における仕様)
+
+- [Docker Desktop for Windows のネットワーク構築機能 — Docker-docs-ja 19.03 ドキュメント](https://docs.docker.jp/docker-for-windows/networking.html)
+- docker0 が
